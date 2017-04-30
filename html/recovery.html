@@ -1,0 +1,625 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="../theme/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="../theme/icon.css" />
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/highcharts.js"></script>
+    <script type="text/javascript" src="../js/highcharts-more.js"></script>
+    <script type="text/javascript" src="../js/recovery.js"></script>
+    <style type="text/css">
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            font-family: 'Microsoft YaHei';
+        }
+
+        .div-field-block {
+            float: left;
+            width: 100%;
+            position: relative;
+        }
+
+        .div-text-title-block {
+            width: 80px;
+            height: 28px;
+            line-height: 28px;
+            background: rgb(0,153,203);
+            font-size: 12px;
+            text-align: center;
+            color: white;
+            float: left;
+            position: absolute;
+            left: 1px;
+            top: 1px;
+        }
+
+        .div-como-title-block {
+            width: 80px;
+            height: 30px;
+            line-height: 30px;
+            background: rgb(0,153,203);
+            float: left;
+            font-size: 12px;
+            text-align: center;
+            color: white;
+        }
+
+        .textbox textarea.textbox-text {
+            overflow: hidden;
+        }
+
+        .div-tab-title-block {
+            cursor: pointer;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            float: left;
+            border-right: 1px solid #dee5e7;
+        }
+
+        .div-tab-title-checked-block {
+            cursor: pointer;
+            height: 30px;
+            line-height: 30px;
+            border-top: 2px solid rgb(0,153,203);
+            border-right: 1px solid #dee5e7;
+            margin-top: -1px;
+            text-align: center;
+            background: white;
+            float: left;
+        }
+
+        .slider-inner {
+            height: 22px;
+            top: 0;
+            border-width: 0;
+            border-radius: 0;
+            background: #2F7ED8;
+        }
+
+        .slider-rulelabel {
+            top: 3px;
+        }
+
+            .slider-rulelabel span {
+                color: #CCCCCC;
+            }
+
+        .slider-rule span {
+            border-style: none;
+        }
+
+        .slider-tip {
+            top: -25px;
+            color: #2f7ed8;
+        }
+
+        .slider-handle {
+            height: 25px;
+            margin-left: -3px;
+            margin-top: -13px;
+            background: url('../image/slider.png') no-repeat;
+        }
+
+        #loading {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            z-index: 1;
+        }
+
+        #divbutton .colorMark {
+            width: 100%;
+            height: 20px;
+            line-height: 20px;
+        }
+
+            #divbutton .colorMark .colorMarkH {
+                display: inline-block;
+                width: 16px;
+                height: 12px;
+                background: #f00;
+                margin-right: 3px;
+            }
+
+            #divbutton .colorMark .colorMarkB {
+                display: inline-block;
+                width: 60px;
+                height: 18px;
+                font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, sans-serif;
+                font-size: 12px;
+                font-weight: bold;
+                fill: #333333;
+            }
+
+            #divbutton .colorMark div:first-child {
+                float: left;
+                margin-left: 40%;
+            }
+
+        #divchart .highcharts-legend g.highcharts-legend-item {
+            width: 120px;
+        }
+    </style>
+    <script type="text/javascript">
+        var curdata = { clouddisk: 200, allottedclouddisk: 150 };
+        var binddata = [{ orgname: "组织1", clouddisk: 50, allottedclouddisk: 30, usedclouddisk: 10 }, { orgname: "组织2", clouddisk: 50, allottedclouddisk: 30, usedclouddisk: 10 }, { orgname: "组织3", clouddisk: 50, allottedclouddisk: 30, usedclouddisk: 10 }];
+        var userdata = [];//岗位下人员
+        var pageindex = 1;
+        var pagesize = 10;
+        var tag = "org";
+        var repairid;//操作人工修复时，所点击的信息id
+        var re; //滑块控件
+        var pieChart;  //圆饼图
+        //var baseurl = ktw.GetSystemUrlByRelID("maintence");
+        //页面调整
+        function Layout() {
+            $("div#divbody").css("overflow", "");
+            if ($(window).width() - 40 < 1179) {
+                $("div#divbody").css("width", 1179);
+                $("#divright").css("width", $('.platform').width() - 500);
+                var dg = $('#dg');
+                dg.datagrid("resize", {
+                    width: $('#divdg').width(),
+                });
+            } else {
+                $("div#divbody").css("width", $(window).width() - 40);
+                $("#divright").css("width", $('.platform').width() - 500);
+                $('#dg').datagrid("resize", {
+                    width: $('#divdg').width(),
+                });
+                if (re != null) {
+                    re.Resize();
+                }
+            };
+            //去除垂直方向滚动条
+            if ($(window).height() - 586 > 361) {
+                console.log($(window).width());
+                var h = $(window).height() - 586;
+                $('#dg').datagrid("resize", {
+                    height: h - 30
+                });
+            } else {
+                $('#dg').datagrid("resize", {
+                    width: $('#divdg').width(),
+                    height: 361
+                });
+            };
+            //按钮字体大小随页面变化而自适应
+            if ($(window).height() > 997) {
+                $("#repairAll span.l-btn-text").css("font-size", "10px");
+                $("#synchronizationAll span.l-btn-text").css("font-size", "10px");
+                $("#confirm span.l-btn-text").css("font-size", "10px");
+                $("#reset span.l-btn-text").css("font-size", "10px");
+            } else {
+                $("#repairAll span.l-btn-text").css("font-size", "12px");
+                $("#synchronizationAll span.l-btn-text").css("font-size", "12px");
+                $("#confirm span.l-btn-text").css("font-size", "12px");
+                $("#reset span.l-btn-text").css("font-size", "12px");
+            };
+        };
+
+        $(function () {
+            pager = $('#dg').treegrid('getPager').pagination({
+                showPageList: false,
+                showRefresh: false,
+                pageSize: pagesize,
+                pageNumber: pageindex,
+                onSelectPage: function (index, size) {
+                    DataBind(index, size);
+                },
+            });
+            Layout();
+            initEventBind();   //初始化事件绑定
+            DataBind();//数据绑定
+            DataBindchart();//圆饼图数据绑定
+        });
+
+        //测试
+        function DataBind() {
+            var result = { data: { dataSource: [{ name: "资源1", rownername: "成员1", departmentname: "单位1", errorreason: "错误1", status: "未解决" }, { name: "资源2", rownername: "成员2", departmentname: "单位2", errorreason: "错误2", status: "未解决" }] } };
+            $("#dg").datagrid("loadData", result.data.dataSource);//对异常资源表进行数据渲染
+        };
+        //测试
+        function DataBindchart() {
+                      
+            updateLayout()
+        };
+        function updateLayout() {
+            var a = tag;
+            if (tag == "org") {
+                $("#divhistogram").hide();
+                $("#divchart").show();
+                //创建饼状图
+                createChart(binddata);
+                //删除原来的资源回收模型
+                $("#divright").empty();
+                binddata.Parent = $("#divright");
+                re = new Recovery(binddata);
+                re.Resize();
+                re.Parent.bind("Recoveryclick", function (e, sender) {
+                    chartChange(sender.newValue, sender.oldValue)
+                });
+            }
+        };
+
+        //创建圆饼图
+        function createChart(bd) {
+            var datas = [];
+            for (var i = 0; i < bd.length; i++) {//获取每条数据的id ,name,和可用空间数值
+                datas.push({ id: bd[i].id, name: bd[i].orgname, y: bd[i].clouddisk });
+                
+
+            };
+            //判断是否有剩余的空间，如果有，添加到datas数组中
+            if (curdata != null && curdata.clouddisk != null && curdata.allottedclouddisk!=null && curdata.clouddisk - curdata.allottedclouddisk > 0) {
+                datas.push({ name: '剩余', y: curdata.clouddisk - curdata.allottedclouddisk });
+            };
+            //创建圆饼图
+            pieChart = new Highcharts.Chart({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: true,
+                    type: "pie",
+                    renderTo: 'divchart',
+                },
+                credits: { enabled: false, },
+                colors: ['#c42525', '#8bbc21', '#910000', '#1aadce',
+                         '#492970', '#f28f43', '#77a1e5', '#0d233a', '#a6c96a'],
+                title: {
+                    text: '',
+                },
+                tooltip: {
+                    pointFormat: "cpu" ? '{series.name}: <b>{point.y}</b>' : '{series.name}: <b>{point.y}GB</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            format: '<b>{point.name}</b>: {point.y}GB',
+                            style: {
+                                fontSize: '13px',
+                                color: '#000000'
+                            }
+                        },
+                        showInLegend: true,
+                        innerSize: 100,
+                        depth: 45
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b">{point.name}</b>: {point.percentage:.1f} %',
+                        style: {
+                            color: '#87C7FF',
+                        }
+                    }
+                },
+                legend: {
+                    align: 'center',
+                    verticalAlign: 'bottom',
+                    x: 5,
+                    y: -15,
+                    itemMarginTop: 5,
+                    width: 500,
+                    itemStyle: {
+                        'fontSize': '12px'
+                    }
+
+                },
+                series: [{
+                    name: '分配值',
+                    data: datas,
+                    events: {
+                        click: function (e) {
+                        }
+                    }
+                }]
+            });
+        };
+
+        //圆饼图变化事件
+        function chartChange(newValue, oldValue) {
+            //圆饼图变化事件            
+            var newData = [];
+            var state = 0;//判断是否有"剩余"，没有的话，就要addpoint
+            for (var i = 0; i < pieChart.series[0].data.length; i++) {
+                if (pieChart.series[0].data[i].name == "剩余") {
+                    state = state + 1;
+                }
+            }
+            if (state == 0) {
+                pieChart.series[0].addPoint({ x: "剩余", y: newValue - oldValue });
+            } else {
+                for (var i = 0; i < pieChart.series[0].data.length; i++) {
+                    if (pieChart.series[0].data[i].name == "剩余") {
+                        pieChart.series[0].data[i].options.y = pieChart.series[0].data[i].options.y + parseInt(newValue) - parseInt(oldValue);
+                        var data = (pieChart.series[0].data[i].options.y);    
+                        newData.push(parseFloat(data));
+                    } else {
+                        newData.push(pieChart.series[0].data[i].options.y);
+
+                    }
+                }
+                pieChart.series[0].setData(newData);
+            }
+        };
+        //资源回收
+        function resourceAllocation(data) {
+            for (var i = 0; i < binddata.length; i++) {
+                for (var j = 0; j < data.length; j++) {
+                    if (data[j].orgname == binddata[i].orgname) {
+                        binddata[i].clouddisk = binddata[i].clouddisk - data[j].clouddisk;
+                        curdata.allottedclouddisk = curdata.allottedclouddisk - data[j].clouddisk;
+
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            DataBindchart();
+
+        };
+
+        //人工修复dom格式化
+        function formatOper(val, row, index) {
+            return '<a class="easyui-linkbutton" onclick="operation(' + index + ')" href="#">人工修复</a>';
+        };
+
+        //人工修复
+        function operation(index) {
+            $('#dg').datagrid('selectRow', index);
+            var row = $('#dg').datagrid('getSelected');
+            if (row) {
+                var errorreason = row.errorreason;
+                repairid = row.id;
+                var status = row.status;
+                var solver = row.solver;
+                var solution = row.solution;
+                var solvetime = row.solvedate;
+                var information = { solver: solver, solution: solution, solvetime: solvetime };
+                if (status == "解决") {
+                    $("#solve").attr("checked", 'checked');
+                } else {
+                    $("#nosolve").attr("checked", 'checked');
+                };
+
+                var time = new Date();
+                var date = time.getFullYear() + "-" + (time.getMonth() + 1) + "-" + time.getDate() + " " + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+                $("#errorreason").textbox("setText", errorreason);
+                $("#formdetail").form("load", information);
+                $('#solvetime').datetimebox('setValue', date);
+                $(".servies").hide();
+                $(".platform").hide();
+                $("#divdetail").show();
+            } else {
+                //设置默认时间为当前时间
+                var time = new Date();
+                var date = time.getFullYear() + "-" + (time.getMonth() + 1) + "-" + time.getDate() + " " + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+                $('#solvetime').datetimebox('setValue', date);
+            }
+
+        };
+
+        //时间转换函数
+        function timeConvert(n) {
+            if (n < 10) {
+                return "0" + n;
+            } else {
+                return n;
+            }
+        };
+
+        //取消
+        function cancel() {
+            $("#formdetail").form('reset');
+            $(".platform").show();
+            $("#divdetail").hide();
+            $(".servies").show();
+            DataBind();
+        };
+
+        //初始化事件绑定
+        function initEventBind() {
+            $(window).resize(function () { Layout(); });
+            $("div.divtab").bind("click", function (e) {
+                var arr = $("div.divtab");
+                if (arr.length <= 0) return;
+                if (tag == $(e.target).attr("tag")) {
+                    return;
+                } else {
+                    tag = $(e.target).attr("tag")
+                };
+                $("#divadd").css("display", "none");
+                arr.css({ "background": "transparent", "border-top-width": "0", "margin-top": "0" });
+                $(e.currentTarget).css({ "border-top": "2px solid rgb(0,153,203)", "background": "white", "margin-top": "-1px" });
+                updateLayout();
+            });
+            //提交
+            $("#preservation").click(function () {
+                return;
+            });
+            //取消
+            $("#cancel").click(function () {
+                cancel();
+            });
+            //资源同步
+            $("#synchronizationAll").click(function () {
+                return;
+            });
+            //一键修复
+            $("#repairAll").click(function () {
+                return;
+            });
+            //滑块重置
+            $("#reset").click(function () {
+                for (var i = 0; i < re.SliderData.length; i++) {
+                    re.SliderData[i].sliderdom.slider("setValue", 0);
+                }
+            });
+
+            //确认回收
+            $("#confirm").click(function () {
+                var data = [];
+                for (var i = 0; i < re.SliderData.length; i++) {
+                    if (re.SliderData[i].sliderdom.slider("getValue") != 0) {
+                        var clouddisk = re.SliderData[i].sliderdom.slider("getValue")
+                        re.SliderData[i].data.clouddisk = clouddisk;
+                        delete re.SliderData[i].data.useclouddisk;
+                        data.push(re.SliderData[i].data);
+                    }
+                };
+                if (data.length == 0) return;
+                resourceAllocation(data);
+            });
+        };
+
+        function showError() {
+            $.messager.show({
+                iconCls: 'icon-cancel',
+                title: '错误提示',
+                msg: '服务连接失败，请检查配置后重试！',
+                timeout: 2000,
+                showType: 'slide'
+            });
+        };
+    </script>
+</head>
+<body style="background-color: #f3f5f6; overflow: auto;">
+    <div id="divbody" style="width: 100%; margin: 0 20px;margin-bottom:20px;">
+        <div id="divtitle" style="width: 100%; height: 50px; line-height: 50px; border: 1px solid transparent; border-bottom: 1px solid #dee5e7;">
+            <span id="title" style="font-family: Microsoft YaHei; font-size: 14px; color: rgb(0,153,203); line-height: 65px; margin-left: 6px;">资源管理 -> 资源回收
+            </span>
+        </div>
+        <div class="platform" style="height: 450px; /*width: 100%;*/ margin-top: 20px; border: 1px solid #dee5e7; background-color: white;">
+            <div style="width: 100%; height: 36px; border-bottom: 1px solid #dee5e7; background-color: rgba(243, 245, 246, 1);">
+                <div class="divtab div-tab-title-checked-block" tag="org" style="width: 120px;height:36px;">云盘资源</div>
+                <div class="divtab div-tab-title-block" tag="orgmemory" style="width: 120px;height:36px;">内存资源</div>
+                <div class="divtab div-tab-title-block" tag="orgcpu" style="width: 120px;height:36px;">CPU资源</div>
+            </div>
+
+            <div id="divchart" style="width: 500px;height:400px; background-color: white; border: 0px solid #dee5e7; float: left"></div>
+            <div style="float: left">
+                <div id="divright" style="height: 302px; border-bottom: 1px solid #dee5e7; overflow-y: auto;margin-top:29px;color:#000000">
+                </div>
+                <div id="divbutton" style="margin-top: 12px;height:70px;">
+                    <div class="colorMark">
+                        <div>
+                            <span class="colorMarkH"></span>
+                            <span class="colorMarkB" style="font-size:12px;color:#000;font-family:"Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, sans-serif;">已使用</span>
+                        </div>
+                        <div>
+                            <span class="colorMarkH" style="background: #2F7ED8"></span>
+                            <span class="colorMarkB" style="font-size:12px;color:#000;font-family:"Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, sans-serif;">可回收</span>
+                        </div>
+                    </div>
+                     <div style="float: right;margin-right:20px;">
+                        <div id="confirm" class="easyui-linkbutton c10" style="width: 80px;border-radius: 3px; background-color: #00AACC; border-color: #00AACC; cursor: pointer; text-align: center; height: 27px; line-height: 27px;">确认回收</div>
+                    </div>
+                    <div id="divreset" style="float: right;margin-right:20px;">
+                        <div id="reset" class="easyui-linkbutton c10" style="width: 80px;border-radius: 3px; background-color: #00AACC; border-color: #00AACC; cursor: pointer; text-align: center; height: 27px; line-height: 27px;">重置</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="servies" style="width: 100%; border: 1px solid #dee5e7; border-top: 0;margin-top:20px;">
+            <div style="width: 100%; height: 40px; border-bottom: 1px solid #dee5e7;border-top:1px solid #dee5e7;">
+                <div id="serviceTitle" style="line-height: 40px; float: left; margin-left: 10px;">异常资源</div>
+                <div style="line-height: 40px; float: right;margin-right:20px;">
+                    <a id="repairAll" class="easyui-linkbutton c10" style="width: 80px;border-radius:3px; background-color: #00AACC;height: 27px; border-color: #00AACC">一键修复</a>
+                </div>
+                <div style="line-height: 40px; float: right;margin-right:20px;">
+                    <a id="synchronizationAll" class="easyui-linkbutton c10" style="width: 80px;border-radius:3px;height: 27px;background-color: #00AACC; border-color: #00AACC">资源同步</a>
+                </div>
+
+            </div>
+            <div id="divdg" style="width: 100%;">
+                <table id="dg" class="easyui-datagrid" style="width:100%;"
+                    data-options="
+                border:0,
+                idField:'id',
+                rownumbers:true,
+                striped:true,
+                singleSelect:true,
+                checkOnSelect: false,
+                selectOnCheck: false,
+                fitColumns:true,
+                pagination:true">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'name',width:100,align:'center'">资源名称</th>
+                            <th data-options="field:'rownername',width:100,align:'center'">资源拥有者</th>
+                            <th data-options="field:'departmentname',width:100,align:'center'">负责单位</th>
+                            <th data-options="field:'errorreason',width:100,align:'center'">错误原因</th>
+                            <th data-options="field:'status',width:100,align:'center'">状态</th>
+                            <th data-options="field:'_operate',width:120,align:'center',formatter:formatOper">操作</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div id="divdetail" style="display: none; width: 100%; overflow-y: auto; margin: 10px 0px 0px 0px; border: 1px solid #dee5e7;">
+            <div style="width: 100%; float: left; background-color: white; overflow-x: hidden; border: 0px solid #dee5e7;">
+                <div style="width: 100%; height: 36px; background-color: white; background: #f6f8f8; border-bottom: 1px solid #dee5e7">
+                    <span id="dlgtitle" style="margin-left: 20px; font-family: 'Microsoft YaHei'; font-size: 12px; color: #0e2d5f; line-height: 36px">资源回收 - 详情</span>
+                </div>
+                <form id="formdetail" method="post" class="easyui-form" data-options="novalidate:true" style="width: 100%; height: 100%;">
+                    <div style="width: 100%; min-width: 500px; background-color: white;">
+                        <div style="width: 90px; display: block; float: left;">
+                            <div style="height: 40px; line-height: 40px; text-align: right">错误原因</div>
+                            <div style="height: 110px; line-height: 110px; text-align: right">解决方案</div>
+                            <div style="height: 40px; line-height: 40px; text-align: right">解决日期</div>
+                            <div style="height: 40px; line-height: 40px; text-align: right">状态</div>
+                        </div>
+                        <div style="width: 370px; display: block; float: left; margin-left: 28px;">
+                            <div style="height: 40px; line-height: 40px; width: 365px">
+                                <input id="errorreason" readonly="true" class="easyui-textbox" data-options="editable:false" style="width: 100%; height: 30px;" />
+                            </div>
+                            <div style="height: 110px; line-height: 110px; width: 365px;">
+                                <input id="solution" name="solution" class="easyui-textbox" style="width: 100%; height: 100px; overflow: hidden" data-options="multiline:true,required:true,validType:['length[0,255]','chsRex'],missingMessage:'必填项！',invalidMessage:'字符数超过255个！'" />
+                            </div>
+                            <div style="height: 40px; line-height: 40px; width: 365px">
+                                <input id="solvetime" class="easyui-datetimebox" data-options="required:true,editable:false,showSeconds:false," style="width: 100%; height: 30px;" />
+                            </div>
+                            <div style="height: 40px; line-height: 40px; width: 365px">
+                                 <input id="serverstatus" name="serverstatus" class="easyui-combobox" value="0" style="width: 100%; height: 30px;" data-options="
+                                    panelHeight:'auto',required:true,
+                                    editable:false,
+                                    valueField: 'value',
+		                            textField: 'label',
+		                            data: [{
+		                            	label: '解决',
+		                            	value: 0
+		                            },{
+		                            	label: '未解决',
+		                            	value: 1,
+                                        selected:true
+		                            }]" />
+                            </div>
+             
+                             <div style="height: 60px; line-height: 60px; width: 365px">
+                                <span>
+                                    <a id="preservation" class="easyui-linkbutton c10" data-options="iconCls:'icon-ok'" style="width: 70px; height: 30px; margin-bottom: 10px;">提交</a>
+                                    <a id="cancel" class="easyui-linkbutton c10" data-options="iconCls:'icon-cancel'" style="width: 70px; height: 30px; margin-bottom: 10px; margin-left: 10px;">取消</a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

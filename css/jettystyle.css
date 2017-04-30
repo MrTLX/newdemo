@@ -1,0 +1,199 @@
+body {
+    font-size: 12px;
+    font-family: 'Microsoft YaHei';
+}
+
+.ip {
+    border: 1px solid #E3E3E3;
+    float: left;
+    width: 145px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.jetty {
+    width: 200px;
+    height: 100px;
+    float: left;
+    border-left: 0px;
+}
+
+.head {
+    width: 199px;
+    border-bottom: solid 1px #E3E3E3;
+    border-right: solid 1px #E3E3E3;
+    background-color: #2E75AB;
+    color: #E3E3E3;
+    line-height: 25px;
+    text-align: center;
+}
+
+.doHand {
+    width: 100%;
+    height: 23px;
+    border-right: solid 1px #73D2E9;
+}
+
+.prot {
+    float: left;
+    text-align: center;
+    color: white;
+    margin-left: 68px;
+    margin-top: 2px;
+}
+
+.cpu {
+    width: 199px;
+    height: 36px;
+    border-bottom: solid 1px #E3E3E3;
+    border-right: solid 1px #E3E3E3;
+    line-height: 36px;
+}
+
+.cpuName {
+    width: 32px;
+    height: 37px;
+    line-height: 37px;
+    float: left;
+    margin-right: 5px;
+}
+
+.ration {
+    float: left;
+    width: 90px;
+    height: 5px;
+    border: 1px solid #E3E3E3;
+    background-color: #C6C6C6;
+    margin-top: 16px;
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+.memory {
+    width: 199px;
+    height: 36px;
+    line-height: 36px;
+    border-bottom: solid 1px #E3E3E3;
+    border-right: solid 1px #E3E3E3;
+}
+
+.movenStyle {
+    display: none;
+    border: 1px solid #73D2E9;
+    width: 198px;
+    height: 98px;
+    position: relative;
+    top: -100px;
+}
+
+.jettyNum {
+    width: 250px;
+    height: 140px;
+    margin-bottom: 20px;
+    margin-left:20px;
+    float: left;
+}
+
+.Thead {
+    background-color: #2E75AB;
+    text-align: center;
+    width: 250px;
+    height: 58px;
+    border: solid 1px #E3E3E3;
+    display: block;
+}
+
+.Tcpu {
+    line-height: 38px;
+    width: 250px;
+    height: 39px;
+    border: solid 1px #E3E3E3;
+    border-top: 0;
+}
+
+.Tmemory {
+    line-height: 39px;
+    width: 250px;
+    height: 39px;
+    border: solid 1px #E3E3E3;
+    border-top: 0;
+}
+
+.TmovenStyle {
+    display: none;
+    border: 1px solid #73D2E9;
+    width: 250px;
+    height: 138px;
+    position: relative;
+    top: -140px;
+}
+
+.cpuImg {
+    background: url(../image/jettyimg/bigImg-icon.png);
+    background-repeat: no-repeat;
+    background-position: 0px 0px;
+    height: 16px;
+    width: 16px;
+    margin: 10px 6px 0px 10px;
+    float: left;
+}
+
+.memoryImg {
+    background: url(../image/jettyimg/bigImg-icon.png);
+    background-repeat: no-repeat;
+    background-position: 0px -16px;
+    height: 16px;
+    width: 16px;
+    margin: 10px 6px 0px 10px;
+    float: left;
+}
+
+.TcpuImg {
+    background: url(../image/jettyimg/bigImg-icon.png);
+    background-repeat: no-repeat;
+    background-position: 0px 0px;
+    height: 16px;
+    width: 16px;
+    margin: 11px 6px 0px 15px;
+    float: left;
+}
+
+.TmemoryImg {
+    background: url(../image/jettyimg/bigImg-icon.png);
+    background-repeat: no-repeat;
+    background-position: 0px -16px;
+    height: 16px;
+    width: 16px;
+    margin: 11px 6px 0px 15px;
+    float: left;
+}
+
+.serious {
+    background: url(../image/jettyimg/bigImg-icon.png);
+    background-repeat: no-repeat;
+    background-position: -16px 0px;
+    height: 16px;
+    width: 16px;
+    margin: 11px 6px 0px 10px;
+    float: left;
+}
+
+.general {
+    background: url(../image/jettyimg/bigImg-icon.png);
+    background-repeat: no-repeat;
+    background-position: -32px 0px;
+    height: 16px;
+    width: 16px;
+    margin: 11px 6px 0px 10px;
+    float: left;
+}
+
+.normal {
+    background: url(../image/jettyimg/bigImg-icon.png);
+    background-repeat: no-repeat;
+    background-position: -48px 0px;
+    height: 16px;
+    width: 16px;
+    margin: 11px 6px 0px 10px;
+    float: left;
+}

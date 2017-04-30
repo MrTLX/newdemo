@@ -1,0 +1,809 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="../theme/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="../theme/icon.css" />
+    <link rel="stylesheet" type="text/css" href="../css/jettystyle.css" />
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/Jetty.js"></script>
+    <script type="text/javascript" src="../js/highcharts.js"></script>
+    <script type="text/javascript" src="../js/highcharts-more.js"></script>
+    <style>
+        .switchOne {
+            background: url(../image/jettyimg/bigImg-icon.png);
+            background-repeat: no-repeat;
+            background-position: -32px -16px;
+            height: 16px;
+            width: 16px;
+            margin-top: 10px;
+            margin-right: 10px;
+            float: right;
+        }
+
+        .switchTwo {
+            background: url(../image/jettyimg/bigImg-icon.png);
+            background-repeat: no-repeat;
+            background-position: -48px -16px;
+            height: 16px;
+            width: 16px;
+            margin-top: 10px;
+            margin-right: 10px;
+            float: right;
+        }
+
+        .div-tab-title-checked-block {
+            cursor: pointer;
+            height: 36px;
+            line-height: 36px;
+            border-top: 2px solid rgb(0,153,203);
+            border-right: 1px solid #dee5e7;
+            margin-top: -1px;
+            text-align: center;
+            background: white;
+            float: left;
+        }
+
+        .div-tab-title-block {
+            cursor: pointer;
+            height: 36px;
+            line-height: 36px;
+            text-align: center;
+            float: left;
+            border-right: 1px solid #dee5e7;
+        }
+
+        .l-btn-plain-selected, .l-btn-plain-selected:hover {
+            background: rgb(0,153,203);
+            color: white;
+        }
+
+        .highcharts-container {
+            border: 1px solid #dee5e7;
+            border-top: 0;
+        }
+    </style>
+    <script type="text/javascript">
+        //获取用户基本信息以及声明全局变量
+        //ktw = window.top.window.ktw;
+        //this.ktw.cookie.validateCookie();     //cookie验证
+        //var userinfo = this.ktw.cookie.user;  //得到用户的信息
+        //var baseurl = ktw.GetSystemUrlByRelID("maintence") + '/';
+        var chart,//图表
+            columnchart,//柱形图表
+            blendChart,//单个统计图
+            timing = 1000 * 3,//默认刷新时间
+            tempdata = [],
+            timer,   //页面定时器
+            stateData;
+
+        //刷新时所需的控件对象
+        var optionOther; //初始化第二个页面所在div
+        var jettys = [];//总jetty数据
+        var jettysChange = [];
+        var result = { data: [{ ip: "192.168.1.110", jettyportlist: [{ port: 8080, type: 0, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8081, type: 1, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8082, type: 2, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8083, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8084, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8085, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }] }, { ip: "192.168.1.111", jettyportlist: [{ port: 8080, type: 0, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8081, type: 1, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8082, type: 2, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8083, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8084, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8085, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }] }, { ip: "192.168.1.112", jettyportlist: [{ port: 8080, type: 0, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8081, type: 1, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8082, type: 2, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8083, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8084, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8085, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8086, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8087, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }, { port: 8088, type: 3, order: 0, cpuRatio: 0, memoryRatio: 0 }] }] };
+        var resultData = { data: [{ ip: "192.168.1.110", jettyportlist: [{ port: 8080, type: 0, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8081, type: 1, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8082, type: 2, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8083, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8084, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8085, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }] }, { ip: "192.168.1.111", jettyportlist: [{ port: 8080, type: 0, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8081, type: 1, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8082, type: 2, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8083, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8084, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8085, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }] }, { ip: "192.168.1.112", jettyportlist: [{ port: 8080, type: 0, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8081, type: 1, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8082, type: 2, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8083, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8084, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8085, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8086, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8087, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }, { port: 8088, type: 3, order: 1, cpuRatio: 0, memoryRatio: 0 }] }] };
+
+        $(function () {           
+            Layout();
+            //控制界面窗口大小
+            $(window).resize(function () {
+                Layout();
+            });            
+            //初始化
+            Initialization();
+            //点击“监控”触发的事件
+            $("#compare").click(function () {
+                var data;
+                for (var i = 0; i < jettys.length; i++) {
+                    var select = jettys[i].GetSelected();
+                    if (select.length < 1) continue;
+                    data = select;
+                }
+                tempdata = data;
+                statisticalChart(data);
+            });
+
+            //切换页面事件（缩略图）
+            $("#swichMain").click(function () {
+                //初始化（删除divjetty中的内容）
+                $('#divjetty div.jettyNum').remove();
+                //关闭第一个页面的定时器,
+                if (timer) clearInterval(timer);
+                //第二个页面初始化
+                reload();
+                //更新图标
+                $('.switchTwo').css("background-position", "-64px -16px");
+                $('.switchOne').css("background-position", "-16px -16px");
+                $('#divjettyMain').css("display", "none");
+                $('#divfoot').css("display", "none");
+                $('#divjetty').css("display", "block");
+            });
+            $("#swichOther").click(function () {
+                //删除divjetty中的内容
+                $("div#divjettyMain").empty();
+                //关闭第二个页面的定时器
+                if (timer) clearInterval(timer);
+                //更新图标
+                $('.switchTwo').css("background-position", "-48px -16px");
+                $('.switchOne').css("background-position", "-32px -16px");
+                $('#divjettyMain').css("display", "block");
+                $('#divjetty').css("display", "none");
+                $('#divfoot').css("display", "block");
+                //还原center中的min-width
+                // $('.center').css("min-width", 963);
+                Initialization();
+            });
+            //二级页面中的“X”事件
+            $("#btnJetty").bind("click", function () {
+                //关闭定时器
+                if (timer != null) {
+                    if (timer) clearInterval(timer);
+                }
+                var position = $(".switchTwo")[0].style.backgroundPositionX; //判断触发“X”前的位置
+                $("#showCpu").empty();
+                $("#showMemory").empty();
+                $("#lineargraph").empty();
+                $('.oneJettyCenter').css("display", "none");
+                $('.jettyContrastCenter').css("display", "none");
+                $('#jettyTitle').css("display", "none");
+                $('.secondary').css("display", "none");
+                $('.main').css("display", "block");
+                if (position == "-64px") {
+                    $('#divjetty').css("display", "block");
+                    $("div#divjetty").empty();
+                    reload();
+                } else {
+                    $('#divjettyMain').css("display", "block");                    
+                    $('.memoryuse').css("display", "none");
+                    //删除之前的div
+                    $("div#divjettyMain").empty();
+                    Initialization();
+                }
+            });          
+        });
+        //定义页面布局
+        function Layout() {
+            $('div#divbody').css("width", $(window).width() - 40 + "px");
+            var width = $("body").width();
+            $('#divfoot').css("width", width - 39);
+            for (var i = 0; i < jettys.length; i++) {
+                jettys[i].Resize();
+            }
+        };
+        //定义初始化函数   获取ip地址 + 端口的数据
+        function Initialization() {
+            
+            //删除divjetty中的内容
+            $("div#divjettyMain").empty();
+            //初始化填充数据
+            init(result.data);
+        };
+        // 初始化jettys列表 ，并生成DOM结构和数据渲染
+        function init(data) {
+            $('#divbody').css("margin-bottom", 55);//上移divbody，让“监控”按钮可以显示
+            for (var i = 0; i < data.length; i++) {
+                data[i].Parent = $("div#divjettyMain");//给每条数据绑定一个父元素
+                //自动生成DOM结构
+                var jm = new JettyMonitor(data[i]);//实例化一个jm,第一页面生成jetty结构
+                jm.Resize();
+                jettys.push(jm);
+                //给每个header(ip+port) 绑定点击事件，创建图表
+                jm.Target.bind("Click", function (e, sender) {
+                    tempdata = sender.data;
+                    statisticalChart(sender.data);//打开统计图
+                });
+            };
+
+            //定时器 = = 数据渲染（所有jettys做渲染（第一页的相关信息））
+            timer = setInterval(function () { initdata1(); }, timing);
+
+        };
+
+        //打开统计图  (页面进行切换) 清除一级页面的定时器
+        function statisticalChart(data) {
+            if (data == undefined) {
+                return;
+            };
+            //清除一级页面定时器
+            if (timer) clearInterval(timer);
+            //隐藏一级页面
+            $('#divjettyMain').css("display", "none");
+            //打开二级页面
+            $('.secondary').css("display", "block");
+
+            //返回成功，判断是单个，还是多个
+            if (data.length == 1) {
+                $('.main').css("display", "none");
+                $('.oneJettyCenter').css("display", "block");
+                $('#btncanel').css("display", "block");
+                $('#jettyTitle').css("display", "block");
+                $('.memoryuse').css("display", "block");
+                //创建单个统计图
+                createBlendChart(data);
+
+            } else {
+                $('.main').css("display", "none");
+                $('.memoryuse').css("display", "none");
+                $('.jettyContrastCenter').css("display", "block");
+                $('#jettyTitle').css("display", "block");
+                $('#btncanel').css("display", "block");
+                $('#divbody').css("margin-bottom", "")//还原divbody
+                //创建对比统计图
+                createChart(data);
+                //创建对比统计图中的第二个统计图（柱形图表）
+                var result = [];
+                for (var i = 0; i < data.length; i++) {
+                    var used = parseInt(Math.random() * 1000);
+                    var cpu = parseInt(Math.random() * 100);
+                    var datas = { address: data[i], heapUsage: used, cpuRatio: cpu };
+                    result.push(datas);
+                };
+                createColumnChart(result);
+            };
+        };
+
+        //创建单个统计图 并设定定时器，定时更新
+        function createBlendChart(IPports) {
+            var memoryUse = "0MB";
+            $("#memoryRatio").textbox("setValue", memoryUse);
+            Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                },
+                lang: {
+                    resetZoom: "返回",
+                    resetZoomTitle: "回到初始状态"
+                }
+            });
+            blendChart = new Highcharts.Chart({
+                chart: {
+                    zoomType: "x",
+                    type: 'spline',
+                    renderTo: "lineargraph",
+                    animation: Highcharts.svg, // don't animate in old IE
+                    marginRight: 10,
+                    events: {
+                        load: function () {//Highcharts中 的load事件，是当图标加载完成时触发
+                            blendChartTime(IPports);//单个jetty页面的定时器（定时更新数据）
+                        }
+                    }
+                },
+                credits: { enabled: false, },
+                colors: ['#2F7ED8'],
+                title: {
+                    text: "CPU使用情况",
+                    style: {
+                        fontFamily: 'Microsoft YaHei',
+                        fontSize: '12px'
+                    }
+                },
+                xAxis: {
+                    type: 'datetime',
+                },
+                yAxis: {
+                    title: {
+                        text: 'CPU使用率'
+                    },
+                    labels: {
+                        format: '{value}%',
+                        style: {
+                            fontFamily: 'Microsoft YaHei',
+                            fontSize: '12px'
+                        }
+                    },
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }],
+
+                },
+                tooltip: {//提示框设置
+                    formatter: function () {
+                        return Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                            '<b>' + "cpu使用率" + '： ' + this.y
+                            + '%</b>';
+                    }
+                },
+                exporting: {//是否启用导出模块
+                    enabled: false
+                },
+                series://数据列   [数组形式]
+                        createSeries(IPports)
+            });
+        };
+
+        //对比统计图
+        function createChart(IPports) {
+            Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                },
+                lang: {
+                    resetZoom: "返回",
+                    resetZoomTitle: "回到初始状态"
+                }
+            });
+            chart = new Highcharts.Chart({
+                chart: {
+                    zoomType: "x",
+                    type: 'spline',
+                    renderTo: 'showCpu',
+                    animation: Highcharts.svg, // don't animate in old IE
+                    marginRight: 10,
+                    events: {
+                        load: function () {
+                            chartTimer(IPports);//绑定定时器，定时更新
+                        }
+                    }
+                },
+                credits: { enabled: false, },
+                colors: ['#c42525', '#2f7ed8', '#8bbc21', '#910000', '#1aadce',
+                         '#492970', '#f28f43', '#77a1e5', '#0d233a', '#a6c96a'],
+                title: {
+                    text: "CPU使用情况",
+                    style: {
+                        fontFamily: 'Microsoft YaHei',
+                        fontSize: '14px'
+                    }
+                },
+                xAxis: {
+                    //categories: [1,2,3,4,5,6,7,8,9,10]
+                    type: 'datetime',
+                    //tickPixelInterval: 150,
+                    //tickInterval:3000,                                  
+                },
+                yAxis: {
+                    title: {
+                        text: 'CPU使用率'
+                    },
+                    labels: {
+                        format: '{value}%',
+                        style: {
+                            fontFamily: 'Microsoft YaHei',
+                            fontSize: '12px'
+                        }
+                    },
+
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }],
+
+                },
+                tooltip: {
+                    formatter: function () {
+                        return Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                            '<b>' + this.series.name + '</b>' + '<br/>' +
+                            '<b>' + "cpu使用率" + '： ' + this.y
+                            + '%</b>';
+                    }
+                },
+                exporting: {
+                    enabled: false
+                },
+                series:
+                        createSeries(IPports)
+            });
+        };
+
+        //对比统计图中的第二个统计图（柱形图表）
+        function createColumnChart(bd) {
+            Highcharts.setOptions({
+                global: {
+                    useUTC: false
+                },
+                lang: {
+                    resetZoom: "返回",
+                    resetZoomTitle: "回到初始状态"
+                }
+            });
+            //柱形图表
+            columnchart = new Highcharts.Chart({
+                chart: {
+                    zoomType: 'x',
+                    renderTo: 'showMemory' //图表的容器
+                },
+                exporting: {  //去掉logo
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                //图表标题
+                title: {
+                    text: 'CPU及内存对比图',
+                    style: {
+                        fontFamily: 'Microsoft YaHei',
+                        fontSize: '14px'
+                    }
+                },
+                xAxis: [{
+                    categories: (function () {
+                        var data = [];
+                        for (var i = 0; i < bd.length; i++) {
+
+                            data.push(bd[i].address);
+                        }
+                        return data;
+                    }()),
+                    // categories: ['192.168.1.166:8080', '192.168.1.166:8081', '192.168.1.166:8082', '192.168.1.166:8083', '192.168.1.166:8084', '192.168.1.166:8085'],
+                    crosshair: true
+                }],
+                //Y轴对应的说明
+                yAxis: [{ // Primary yAxis
+                    labels: {
+                        format: '{value}%',
+                        style: {
+                            color: Highcharts.getOptions().colors[1],
+                            fontFamily: 'Microsoft YaHei',
+                            fontSize: '12px'
+                        }
+                    },
+                    title: {
+                        text: 'CPU使用率',
+                        style: {
+                            color: Highcharts.getOptions().colors[1],
+                            fontFamily: 'Microsoft YaHei',
+                            fontSize: '12px'
+                        }
+                    }
+                }, { // Secondary yAxis
+                    title: {
+                        text: '内存',
+                        style: {
+                            color: Highcharts.getOptions().colors[1],
+                            fontFamily: 'Microsoft YaHei',
+                            fontSize: '12px'
+                        }
+                    },
+                    labels: {
+                        format: '{value} MB',
+                        style: {
+                            color: Highcharts.getOptions().colors[1],
+                            fontFamily: 'Microsoft YaHei',
+                            fontSize: '12px'
+                        }
+                    },
+                    opposite: true
+                }],
+                tooltip: {
+                    shared: true,
+                },
+                //图例
+                series: [{
+                    name: '使用内存',
+                    type: 'column',
+                    yAxis: 1,
+                    data:
+                        (function () {
+                            var data = [];
+                            for (var i = 0; i < bd.length; i++) {
+                                //data.push(parseInt(Math.random() * 100));
+                                data.push(bd[i].heapUsage);
+                            }
+                            return data;
+                        }()),
+
+                    //[49.9, 71.5, 106.4, 129.2, 144.0, 176.0],
+                    tooltip: {
+                        valueSuffix: ' MB'
+                    },
+                    color: '#2F7ED8'
+                }, {
+                    name: 'cpu使用率',
+                    type: 'spline',
+                    data:
+                         (function () {
+                             var data = [];
+                             for (var i = 0; i < bd.length; i++) {
+                                 //data.push(parseInt(Math.random() * 100));
+                                 data.push(bd[i].cpuRatio);
+                             }
+                             return data;
+                         }()),
+                    //[7.0, 6.9, 9.5, 14.5, 18.2, 9.3],
+                    tooltip: {
+                        valueSuffix: '%'
+                    },
+                    color: '#C42525'
+                }]
+            });
+        };
+
+        //单个统计图（jetty）页面定时器（创建统计图时已经调用）
+        function blendChartTime(port) {
+            timer = setInterval(function () {
+                //设置定时器，进行图标数据的渲染
+                var chart = $('#lineargraph').highcharts();
+                var das = [];
+                for (var i = 0; i < port.length; i++) {
+                    das.push(port[i]);
+                };
+                if (chart) {
+                    var cpuPoint = chart.series[0];                    
+                    var cpu = parseInt(Math.random() * 100);
+                    cpuPoint.addPoint({ x: (new Date()).getTime(), y: cpu });
+                }
+            }, timing);
+        };
+
+        //对比jetty页面定时器 每次重新更新第二张柱形图
+        function chartTimer(IPports) {            
+            timer = setInterval(function () {
+                var result = [];
+                for (var i = 0; i < IPports.length; i++) {
+                    var used = parseInt(Math.random() * 1000);
+                    var cpu = parseInt(Math.random() * 100);
+                    var data = { address: IPports[i], heapUsage: used ,cpuRatio:cpu};
+                    result.push(data);
+                };
+
+                createColumnChart(result);//每次刷新数据的时候都重新创建一次柱形图表
+                var ser = chart.series;//chart是实例化的第一个对比统计图 
+                if (ser == null) return;
+                for (var i = 0; i < ser.length; i++) {
+                    var x = (new Date()).getTime(); // current time
+                    var y = parseInt(Math.random() * 100);
+                    ser[i].addPoint([x, y]);
+                }
+                refreshColumn(result);//柱形统计图数值更新
+            }, timing);
+        };
+
+        //对比页面中的第二个统计图数值更新
+        function refreshColumn(result) {
+            var cpus = [];
+            for (var i = 0; i < result.length; i++) {
+                var memory = result[i].heapUsage;
+                var cpu = result[i].cpuRatio;
+                columnchart.series[0].points[i].update(memory);
+                cpus.push(cpu);
+            }
+            columnchart.series[1].setData(cpus);
+        };
+
+        //第一页 jettys 列表 数据渲染
+        function initdata() {
+            $.ajax({
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                url: baseurl + "jmxserver/getall",
+                dataType: "json",
+                success: function (result) {
+                    if (result.statusCode == 500) {
+                        return;
+                    } else {
+                        var datas = result.data;
+                        for (var i = 0; i < datas.length; i++) {
+                            var data = datas[i];
+                            for (var j = 0; j < jettys.length; j++) {
+                                if (data.ip == jettys[j].IP) {
+                                    jettys[j].SetValue(data.jettyportlist);//jettys是第一页已经生成的DOM结构
+                                }
+                            }
+                        }
+                    };
+                },
+                error: function (e) {
+                    showerror();
+                    return "error";
+                }
+            });
+
+        };
+        function initdata1() {
+            
+            for (var i = 0; i < resultData.data.length; i++) {
+                for (var j = 0; j < resultData.data[i].jettyportlist.length; j++) {
+                    resultData.data[i].jettyportlist[j].cpuRatio = parseInt(Math.random() * 100);
+                    resultData.data[i].jettyportlist[j].memoryRatio = parseInt(Math.random() * 100);
+                }               
+            }
+            var datas = resultData.data;
+            for (var i = 0; i < datas.length; i++) {
+                var data = datas[i];
+                for (var j = 0; j < jettys.length; j++) {
+                    if (data.ip == jettys[j].IP) {
+                        jettys[j].SetValue(data.jettyportlist);//jettys是第一页已经生成的DOM结构
+                    }
+                }
+            }
+        };
+
+        //第二个页面初始化（缩略图）
+        function reload() {
+           
+            //初始化缩略图列表  生成dom结构和数据渲染
+            initChange(result.data);
+        };
+
+        //初始化列表（缩略图）生成DOM结构和数据渲染
+        function initChange(data) {
+            jettysChange = [];
+            for (var i = 0; i < data.length; i++) {
+                data[i].Parent = $("div#divjetty");
+                var jt = new JettyTotal(data[i]);
+                jettysChange.push(jt);
+                //点击事件
+                jt.Target.bind("Stateclick", function (e, sender) {
+                    //alert(sender.data);
+                    statisticalChart(sender.data);
+                });
+
+
+            }
+
+            timer = setInterval(function () { initChangedata(); }, timing);
+
+        };
+
+        //填充切换页面后的数值
+        function initChangedata() {          
+            for (var i = 0; i < resultData.data.length; i++) {
+                for (var j = 0; j < resultData.data[i].jettyportlist.length; j++) {
+                    resultData.data[i].jettyportlist[j].cpuRatio = parseInt(Math.random() * 100);
+                    resultData.data[i].jettyportlist[j].memoryRatio = parseInt(Math.random() * 100);
+                }
+            }
+            var datas = resultData.data;
+            for (var i = 0; i < datas.length; i++) {
+                var data = datas[i];
+                for (var j = 0; j < jettysChange.length; j++) {
+                    if (data.ip == jettysChange[j].IP) {
+                        jettysChange[j].SetValue(data);
+                    }
+                }
+            }
+        };
+       
+        //动态加载单个统计图Chart中的series数据列【数组】
+        function createSeries(adress) {
+            var series = new Array();
+            var datas = [];
+            for (var i = 0; i < adress.length; i++) {
+                datas.push(adress[i]);
+            };
+            $.ajax({
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                url: baseurl + "jmxserver/querystatus",
+                data: JSON.stringify(datas),
+                async: false, //表示同步，如果要得到ajax处理完后台数据后的返回值，最好这样设置
+                dataType: "json",
+                success: function (result) {
+                    for (var i = 0; i < result.data.length; i++) {
+                        var name = result.data[i].address;
+                        var yData = result.data[i].cpuRatio;
+                        var data = function () {
+
+                            var datas = [],
+                               time = (new Date()).getTime(),
+                                i;
+                            for (i = -9; i <= 0; i += 1) {
+                                var times = time + i * timing;
+                                datas.push({
+                                    x: times,
+                                    y: yData
+                                });
+                            }
+                            return datas;
+                        }();
+                        series.push({ "name": name, "data": data });
+                    }
+                }
+            }, false);  //false表示“遮罩”，前台不显示“请稍后”进度提示           
+            return series;
+        };
+        function createSeries(adress) {
+            var series = new Array();
+            var datas = [];
+            //模拟参数
+            var result = [];
+            for (var i = 0; i < adress.length; i++) {
+                var cpu = parseInt(Math.random() * 100);
+                var data = { address: adress[i], cpuRatio: cpu };
+                result.push(data);
+            }
+
+            for (var i = 0; i < result.length; i++) {
+                var name = result[i].address;
+                var yData = result[i].cpuRatio;
+                var data = function () {
+
+                    var datas = [],
+                       time = (new Date()).getTime(),
+                        i;
+                    for (i = -9; i <= 0; i += 1) {
+                        var times = time + i * timing;
+                        datas.push({
+                            x: times,
+                            y: yData
+                        });
+                    }
+                    return datas;
+                }();
+                series.push({ "name": name, "data": data });
+            }
+            return series;
+        };
+        //数据转换
+        function dataChange(arr) {
+            var datas = [];
+            for (var i = 0; i < arr.length; i++) {
+                datas.push(arr[i]);
+            }
+            return datas;
+
+        };
+
+        //错误提示
+        function showerror() {
+            $.messager.show({
+                iconCls: 'icon-cancel',
+                title: '错误提示',
+                msg: '服务连接失败，请检查配置后重试！',
+                timeout: 2000,
+                showType: 'slide'
+            });
+        };
+    </script>
+</head>
+<body style="background-color: #f3f5f6; overflow-y: auto; overflow-x: auto">
+    <div id="divbody" style="width: 100%; margin: 0 20px 0 20px; min-width: 972px;">
+        <div id="divtitle" style="width: 100%; height: 50px; line-height: 50px; border: 1px solid transparent; border-bottom: 1px solid #dee5e7;">
+            <span id="title" style="font-family: Microsoft YaHei; font-size: 14px; color: rgb(0,153,203); line-height: 65px; margin-left: 6px;">平台监控 -> 分布式web服务器
+            </span>
+        </div>
+        <div class="main" style="margin-top: 20px;">
+            <div class="title" style="height: 36px; border: 1px solid #E3E3E3; background: #f6f8f8; border-bottom: 0px; width: 100%">
+                <div id="swichMain" style="float: right; height: 36px; width: 36px; border-left: 1px solid #E3E3E3; cursor: pointer">
+                    <div class="switchOne"></div>
+                </div>
+                <div id="swichOther" style="float: right; height: 36px; width: 36px; border-left: 1px solid #E3E3E3; cursor: pointer">
+                    <div class="switchTwo"></div>
+                </div>
+            </div>
+            <div class="center" style="border: 1px solid #E3E3E3; background-color: #FFFFFF; overflow-x: auto; width: 100%;">
+                <div id="divjettyMain" style="display: block; margin: 10px;"></div>
+                <div id="divjetty" style="display: none; margin: 20px; margin-left: 0;"></div>
+            </div>
+            <div id="divfoot" style="height: 40px; position: fixed; bottom: 15px; background: #f3f5f6; opacity: 0.75; text-align: center; border-top: 1px solid #dee5e7;">
+                <div style="width: 160px; margin: 0px auto;">
+                    <div id="divlast" style="margin: 0 5px; line-height: 30px; float: left">
+                        <a id="compare" class="easyui-linkbutton c10" style="width: 70px;background:rgb(0,153,203)" data-options="">监控</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!--缩略图部分-->
+        <div class="secondary" style="display: none;">
+
+            <div id="jettyTitle" style="border: 1px solid #dee5e7; height: 36px; width: 100%; display: none; margin-top: 20px;">
+                <a id="btnJetty" class="easyui-linkbutton c10" data-options="" style="float: right; width: 28px; height: 28px; margin-right: 10px; margin-top: 4px;">X</a>
+            </div>
+            <div class="jettyContrastCenter" style="display: none;">
+                <div id="showCpu" style="height: 300px; width: 100%;"></div>
+                <div id="showMemory" style="height: 300px; width: 100%;"></div>
+            </div>
+            <div class="oneJettyCenter" style="display: none;">
+                <div id="lineargraph" class="LinearGraph" style="width: 100%; height: 600px; float: left;"></div>
+            </div>
+            <div style="width: 100%; position: relative; opacity: 0.75; text-align: center; top: -600px; z-index: 1;">
+                <div class="memoryuse" style="float: right; font-size: 13px; color: white; background: #0099CB; margin-right: -155px; margin-top: 60px; height: 25px; display: none">
+                    <b style="padding-left: 8px;">内存已使用：</b>
+                    <input id="memoryRatio" class="easyui-textbox" value="" data-options="editable:false,readonly:true" style="height: 25px; line-height: 25px; width: 60px;" />
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+</html>

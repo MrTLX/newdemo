@@ -1,0 +1,562 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="../theme/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="../theme/icon.css" />
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui-lang-zh_CN.js"></script>
+    <style type="text/css">
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            font-family: 'Microsoft YaHei';
+        }
+
+        .div-field-block {
+            width: 100%;
+            float: left;
+            position: relative;
+        }
+
+        .div-text-title-block {
+            width: 80px;
+            height: 28px;
+            line-height: 28px;
+            background: rgb(0,153,203);
+            font-size: 12px;
+            text-align: center;
+            color: white;
+            float: left;
+            position: absolute;
+            left: 1px;
+            top: 1px;
+        }
+
+        .div-como-title-block {
+            width: 80px;
+            height: 30px;
+            line-height: 30px;
+            background: rgb(0,153,203);
+            float: left;
+            font-size: 12px;
+            text-align: center;
+            color: white;
+        }
+
+        .circle {
+            width: 148px;
+            height: 148px;
+            /*position: absolute;*/
+            border-radius: 50%;
+            background: #0cc;
+        }
+
+        .pie_left {
+            width: 148px;
+            height: 148px;
+            position: relative;
+            top: 0;
+            left: 0;
+        }
+
+        .pie_right {
+            width: 148px;
+            height: 148px;
+            position: relative;
+            top: -148px;
+            left: 0;
+        }
+
+        .left {
+            display: block;
+            width: 148px;
+            height: 148px;
+            background: #00aacc;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .right {
+            display: block;
+            width: 148px;
+            height: 148px;
+            background: #00aacc;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .pie_right, .right {
+            clip: rect(0,auto,auto,74px);
+        }
+
+        .pie_left, .left {
+            clip: rect(0,74px,auto,0);
+        }
+
+
+        .mask {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #FFF;
+            text-align: center;
+            line-height: 100px;
+            font-size: 12px;
+            left: 24px;
+            top: -271px;
+            position: relative;
+        }
+
+        #loading {
+            width: 100px;
+            height: 100px;
+            position: fixed;
+            margin: auto;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+    </style>
+    <script type="text/javascript">
+       // ktw = window.top.window.ktw;
+        //cookie验证
+       // this.ktw.cookie.validateCookie();
+        //得到用户的信息
+       // var userInfo = this.ktw.cookie.user;
+        //记录当前插件的业务实体，在ajax提交时候需要把部分信息放在请求头里面传递
+       // var bussinessModel;
+        //记录当前插件的父业务实体，在ajax提交时候需要把部分信息放在请求头里面传递
+        //var parentBussinessModel;
+       // var baseUrl = ktw.GetSystemUrlByRelID("maintence");
+        var pageindex = 1;
+        var pagesize = 10;
+
+        function showerror() {
+            $.messager.show({
+                iconCls: 'icon-cancel',
+                title: '错误提示',
+                msg: '服务连接失败，请稍后重试！',
+                timeout: 2000,
+                showType: 'slide'
+            });
+        };
+        function Layout() {
+            $("#divcircle").css("margin-top", 30);
+            if ($(window).width() - 40 < 1179) {
+                $("div#divbody").css("width", 1179);
+                $(".platform").css("width", 1179);
+
+            } else {
+                $("div#divbody").css("width", $(window).width() - 40);
+                $(".platform").css("width", $(window).width() - 40);
+                $('#dg').css("width", '100%');
+                $('#dgrepiar').css("width", "100%");
+            }
+            var dg = $('#dg');
+            dg.datagrid("resize", {
+                width: $('#divdg').width,
+                height: $(window).height() - 334 - 40 - 20
+            });
+            var dgrepiar = $('#dgrepiar');
+            dgrepiar.datagrid("resize", {
+                width: $('#divdgrepiar').width,
+                height: $(window).height() - 334 - 40 - 20
+            });
+
+        };
+        //检测后的错误服务
+        function DataBind(index, size) {
+            if (ktw.IsNull(index)) index = pageindex;
+            if (ktw.IsNull(size)) size = pagesize;
+            $.ajax({
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                url: baseUrl + "/servicemonitor/querybyorganizationid/" + userInfo.id,
+                dataType: "json",
+                beforeSend: function (XMLHttpRequest) {
+                    $("#loading").html("<img src='../../image/wait.gif' />"); //在后台返回success之前显示loading图标
+                },
+                success: function (result) {
+                    if (ktw.IsNull(result) || result.statusCode !== 200) {
+                        $.messager.show({
+                            title: '提示',
+                            msg: '查询失败，请检查配置后重试！',
+                            timeout: 2000,
+                            showType: 'slide'
+                        });
+                        $("#loading").empty();
+                        return;
+                    }
+                    $("#loading").empty(); //ajax返回成功，清除loading图标
+                    $('#serviceRepair').css("display", "block");
+                    $('#messageNum').css("display", "block");
+                    // $("#dg").datagrid("loadData", result.data.serviceerror);
+                    //初始化页面信息
+                    var time = new Date();
+                    var newTime = time.getFullYear() + "年" + (time.getMonth() + 1) + "月" + time.getDate() + "日 " + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+                    var times = "截至统计时间：" + newTime;
+                    $("#serviesTime").text(times);
+                    $("#serviceNums").text(result.data.totalcount);
+                    $("#repairService").text(result.data.errorcount);
+                    ////圆环比列
+                    $('.circle').each(function (index, el) {
+                        var num = 0;
+                        if (num <= 180) {
+                            $(this).find('.right').css('transform', "rotate(" + num + "deg)");
+                        } else {
+                            $(this).find('.right').css('transform', "rotate(180deg)");
+                            $(this).find('.left').css('transform', "rotate(180deg)");
+                        };
+                    });
+                    //判断服务健康状态
+                    if (result.data.errorcount / result.data.totalcount >= 0 && result.data.errorcount / result.data.totalcount <= 0.1) {                        
+                        $("#healthy").text("您的服务状态非常好，请继续保持！");
+                        //服务打分（90-100）
+                        var score = Math.round(Math.random() * 10) + 90;
+                        $("#score").text(score);
+                    } else if (result.data.errorcount / result.data.totalcount > 0.1 && result.data.errorcount / result.data.totalcount <= 0.4) {
+                        $("#healthy").text("您的服务状态一般，多注意维护服务！");
+                        //服务打分（70-90）
+                        var score = Math.round(Math.random() * 19) + 70;
+                        $("#score").text(score);
+                    } else {
+                        $("#healthy").text("您的服务状态很差，请及时维护服务！");
+                        //服务打分（60-70）
+                        var score = Math.round(Math.random() * 9) + 60;
+                        $("#score").text(score);
+                    }
+
+                    $("#dg").datagrid("loadData", result.data.serviceerror);
+                },
+                error: function (e) {
+                    showerror();
+                    $("#loading").empty();
+                }
+            });
+        };
+        //测试方法
+        function DataBind1() {
+            //模拟数据
+            var result = { data: { totalcount: 10, errorcount: 2, serviceerror: [{ servicename: "服务1", servicetype: "类型1", organizationname: "组织1", errormsg: "错误1" }, { servicename: "服务2", servicetype: "类型2", organizationname: "组织2", errormsg: "错误2" }] } };
+            $('#serviceRepair').css("display", "block");
+            $('#messageNum').css("display", "block");
+            // $("#dg").datagrid("loadData", result.data.serviceerror);
+            //初始化页面信息
+            var time = new Date();
+            var newTime = time.getFullYear() + "年" + (time.getMonth() + 1) + "月" + time.getDate() + "日 " + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+            var times = "截至统计时间：" + newTime;
+            $("#serviesTime").text(times);
+            $("#serviceNums").text(result.data.totalcount);
+            $("#repairService").text(result.data.errorcount);
+            ////圆环比列
+            $('.circle').each(function (index, el) {
+                var num = 0;
+                if (num <= 180) {
+                    $(this).find('.right').css('transform', "rotate(" + num + "deg)");
+                } else {
+                    $(this).find('.right').css('transform', "rotate(180deg)");
+                    $(this).find('.left').css('transform', "rotate(180deg)");
+                };
+            });
+            //判断服务健康状态
+            if (result.data.errorcount / result.data.totalcount >= 0 && result.data.errorcount / result.data.totalcount <= 0.1) {
+                $("#healthy").text("您的服务状态非常好，请继续保持！");
+                //服务打分（90-100）
+                var score = Math.round(Math.random() * 10) + 90;
+                $("#score").text(score);
+            } else if (result.data.errorcount / result.data.totalcount > 0.1 && result.data.errorcount / result.data.totalcount <= 0.4) {
+                $("#healthy").text("您的服务状态一般，多注意维护服务！");
+                //服务打分（70-90）
+                var score = Math.round(Math.random() * 19) + 70;
+                $("#score").text(score);
+            } else {
+                $("#healthy").text("您的服务状态很差，请及时维护服务！");
+                //服务打分（60-70）
+                var score = Math.round(Math.random() * 9) + 60;
+                $("#score").text(score);
+            }
+
+            $("#dg").datagrid("loadData", result.data.serviceerror);
+        }
+        //修复后的错误服务
+        function dataBindrepair(index, size) {
+            var repairparameters = [];
+            var result = $("#dg").datagrid("getData");
+            //得到一键修复所需要的参数                   
+            for (var i = 0; i < result.rows.length; i++) {
+                var parameters = { serviceid: result.rows[i].serviceid, errorcode: result.rows[i].errorcode };
+                repairparameters.push(parameters);
+            }
+            if (ktw.IsNull(index)) index = pageindex;
+            if (ktw.IsNull(size)) size = pagesize;
+            $.ajax({
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                url: baseUrl + "/servicemonitor/querybyRestoreInfo",
+                dataType: "json",
+                data: JSON.stringify(repairparameters),
+                success: function (result) {
+                    if (ktw.IsNull(result) || result.statusCode !== 200) {
+                        $.messager.show({
+                            title: '提示',
+                            msg: '查询失败，请检查配置后重试！',
+                            timeout: 2000,
+                            showType: 'slide'
+                        });
+                        return;
+                    }
+                    //初始化页面信息
+                    var time = new Date();
+                    var newTime = time.getFullYear() + "年" + (time.getMonth() + 1) + "月" + time.getDate() + "日 " + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+                    var times = "截至统计时间：" + newTime;
+                    $("#serviesTime").text(times);
+                    $("#serviceNums").text(result.data.totalerrorcount);
+                    $("#repairService").text(result.data.restorenotmessage.length);
+                    $("#num").text(result.data.totalerrorcount - result.data.restorenotmessage.length);
+                    $("#dgrepiar").datagrid("loadData", result.data.restorenotmessage);
+                    $("#serviceTitle").text("无法修复的服务");
+                    //圆环比列
+                    $('.circle').each(function (index, el) {
+                        //var num = 0.3 * 360;
+                        var num = ((result.data.totalerrorcount - result.data.restorenotmessage.length) / result.data.totalerrorcount) * 360;
+                        if (num <= 180) {
+                            $(this).find('.right').css('transform', "rotate(" + num + "deg)");
+                        } else {
+                            $(this).find('.right').css('transform', "rotate(180deg)");
+                            $(this).find('.left').css('transform', "rotate(" + (num - 180) + "deg)");
+                        };
+                    });
+                },
+                error: function () {
+                    showerror();
+                }
+            });
+        };
+        //测试方法
+        function dataBindrepair1() {
+            var result = { data: { totalerrorcount: 2, restorenotmessage: [{servicename:"服务2", servicetype:"类型2", organizationname:"组织2", solution:"原因2"}]}};
+            //初始化页面信息
+            var time = new Date();
+            var newTime = time.getFullYear() + "年" + (time.getMonth() + 1) + "月" + time.getDate() + "日 " + time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds();
+            var times = "截至统计时间：" + newTime;
+            $("#serviesTime").text(times);
+            $("#serviceNums").text(result.data.totalerrorcount);
+            $("#repairService").text(result.data.restorenotmessage.length);
+            $("#num").text(result.data.totalerrorcount - result.data.restorenotmessage.length);
+            $("#dgrepiar").datagrid("loadData", result.data.restorenotmessage);
+            $("#serviceTitle").text("无法修复的服务");
+            //圆环比列
+            $('.circle').each(function (index, el) {
+                //var num = 0.3 * 360;
+                var num = ((result.data.totalerrorcount - result.data.restorenotmessage.length) / result.data.totalerrorcount) * 360;
+                if (num <= 180) {
+                    $(this).find('.right').css('transform', "rotate(" + num + "deg)");
+                } else {
+                    $(this).find('.right').css('transform', "rotate(180deg)");
+                    $(this).find('.left').css('transform', "rotate(" + (num - 180) + "deg)");
+                };
+            });
+        };
+        function formatOperService(val, row, index) {
+            return '<a class="easyui-linkbutton" onclick="details(' + index + ')" href="#">解决方法</a>';
+        };
+        //解决方法
+        function details(index) {
+            return;
+            //$('#dgrepiar').datagrid('selectRow', index);
+            //var row = $('#dgrepiar').datagrid('getSelected');
+            //    if (row) {
+            //        var name = row.serviceid;
+            //        var detail = OpenWindow({
+            //            ID: "detail",
+            //            Title: "解决方法",
+            //            IconUri: "",
+            //            Width: 600,
+            //            Height: 400,
+            //            Left: "center",
+            //            Top: "center",
+            //            Maximizable: false,
+            //            Collapsible: false,
+            //            Resizable: false,
+            //            Draggable: false,
+            //            Modal: true,
+            //            IsDestroy: false,
+            //            Parent: ktw.App.FillPanel,
+            //            Url: ktw.App.Root + "html/solution.html" + "?actions=detail&name=" + name
+            //        });
+            //    }
+        };
+        function formatTime(value, row, index) {
+            if (!ktw.IsNull(row.servicelogdate)) {
+                return ktw.DateToString("/Date(" + row.servicelogdate + ")/")
+            }
+            else return value;
+        };
+
+        $(function () {
+            $(window).resize(function () { Layout(); });
+            Layout();
+            pager = $('#dg').datagrid('getPager').pagination({
+                showPageList: false,
+                showRefresh: false,
+                onSelectPage: function (index, size) {
+                    $('#dg').datagrid('getPager').pagination('refresh', {
+                        pageNumber: index,
+                        pageSize: size
+                    });
+                    DataBind1();
+                },
+            });
+            pagertwo = $('#dgrepiar').datagrid('getPager').pagination({
+                showPageList: false,
+                showRefresh: false,
+                pageSize: pagesize,
+                pageNumber: pageindex,
+            });
+            //服务检测
+            $("#serviceClick").click(function () {
+                $('#repairImg').css("display", "none");
+                $('#scoreImg').css("display", "block");
+                $('#serviceName').text("出错的服务");
+                $('#serviceType').text("注册的服务");
+                $("#serviceTitle").text("出错的服务");
+                $('#divdgrepiar').css("display", "none");
+                $('#divdg').css("display", "block");
+                $("#serviceNums").text("0");
+                $("#repairService").text("0");
+                $("#score").text("100");
+                $('#dg').datagrid('reload');
+                $("#platform").css("height", 250);
+                $(".servies").css("display", "block");
+                DataBind1();
+                Layout();
+            });
+            //一键修复
+            $('#serviceRepair').click(function () {
+                $('#repairImg').css("display", "block");
+                $('#scoreImg').css("display", "none");
+                $('#serviceName').text("无法修复的服务");
+                $('#serviceType').text("错误的服务");
+                $('#divdg').css("display", "none");
+                $('#divdgrepiar').css("display", "block");
+                dataBindrepair1();
+                Layout();
+
+            });
+        });
+    </script>
+</head>
+<body style="background-color: #f3f5f6; overflow-x: auto;">
+    <div id="divbody" style="width: 100%; height: 100%; margin: 0 20px;">
+        <div id="divtitle" style="width: 100%; height: 50px; line-height: 50px; border: 1px solid transparent; border-bottom: 1px solid #dee5e7;">
+            <span id="title" style="font-family: Microsoft YaHei; font-size: 14px; color: rgb(0,153,203); line-height: 65px; margin-left: 6px;">平台监控 -> 服务监控
+            </span>
+        </div>
+
+        <div id="serviceCheck">
+            <div class="platform" style="height: 250px;margin-top: 20px; border: 1px solid #dee5e7; background-color: white;">
+                <div style="width: 100%; height: 30px; border-bottom: 1px solid #dee5e7; background-color: rgba(243, 245, 246, 1);">
+                    <div style="line-height: 30px; float: left; /*font-size: 16px; */ margin-left: 10px;">共享服务健康状态</div>
+                    <div id="platformTime" style="line-height: 30px; float: left; margin-left: 20px; font-size: 11px;"></div>
+                </div>
+                <div id="divcircle" style="width: 100%; height: 180px;">
+                    <div class="circle" style="margin-left: 85px; float: left;">
+                        <div class="pie_left">
+                            <div class="left"></div>
+                        </div>
+                        <div class="pie_right">
+                            <div class="right"></div>
+                        </div>
+                        <div id="repairImg" class="mask" style="display: none;">共修复<span id="num"></span>个问题</div>
+                        <div id="scoreImg" class="mask" style="color: #00aacc;"><span id="score" style="font-size: 45px; color: #00aacc;">100</span>分</div>
+                    </div>
+                    <div style="height: 178px; float: left; width:600px;">
+                        <div id="healthy" style="height: 57px; color: #00a5ff; font-size: 20px; line-height: 57px;text-align:center;">您的服务还未检测，请点击检测按钮！</div>                      
+                        <div id="messageNum" style="height: 60px; color: #06a5fc;display: none;padding-top:20px;">
+                                <div id="serviceNums" style="float: left;font-size: 65px;margin-right: 5px;margin-left:139px; font-family: '仿宋';">0</div>
+                                <div style="float: left;height:60px;">
+                                    <p style="text-align: left;margin-bottom: 3px;margin-top:15px;">条</p>
+                                    <p id="serviceType" style ="margin-top:0px;margin-bottom:0px;"></p>
+                                </div>
+                                <div id="repairService" style="float: left;height:60px; font-size: 65px;margin-right: 5px;margin-left:40px; font-family: '仿宋';">0</div>
+                                <div style="float: left; height:60px;">
+                                    <p style="text-align: left;margin-bottom: 3px; margin-top:15px;">条</p>
+                                    <p id="serviceName" style ="margin-top:0px;margin-bottom:0px;"></p>
+                                </div>
+                           
+                        </div>
+                    </div>
+                    <div style="float: left;">
+                        <div id="serviceClick" style="height: 57px; width: 180px; border: 1px solid #dee5e7; background-color: #00aacc; text-align: center; line-height: 57px; color: white; font-size: 23px; cursor: pointer;">服务检测</div>
+                        <div id="serviceRepair" style="display: none; height: 57px; width: 180px; border: 1px solid #dee5e7; background-color: #00aacc; text-align: center; line-height: 57px; color: white; font-size: 23px; cursor: pointer; margin-top: 20px;">一键修复</div>
+                    </div>
+                </div>
+                <div></div>
+            </div>
+            <div id="loading"></div>
+            <div class="servies" style="width: 100%; /*height: 400px; */ margin-top: 20px; border: 1px solid #dee5e7; display: none;">
+                <div style="width: 100%; height: 35px; border-bottom: 1px solid #dee5e7;">
+                    <div id="serviceTitle" style="line-height: 35px; float: left; /*font-size: 16px; */ margin-left: 10px;"></div>
+                    <div id="serviesTime" style="line-height: 35px; float: left; margin-left: 20px; font-size: 11px;"></div>
+                </div>
+                <div id="divdg" style="display:block;">
+                    <table id="dg" class="easyui-datagrid" style="height: 100%; /*min-height: 330px*/"
+                        data-options="
+                border:0,
+                idField:'id',
+                rownumbers:true,
+                striped:true,                
+                singleSelect:true,
+                checkOnSelect: false,
+                selectOnCheck: false,                
+                fitColumns:true,
+                pagination:true">
+                        <thead>
+                            <tr>
+                                <th data-options="field:'servicename',width:100,align:'center'">服务名称</th>
+                                <th data-options="field:'servicetype',width:100,align:'center'">服务类型</th>
+                                <th data-options="field:'organizationname',width:100,align:'center'">组织名称</th>
+                                <th data-options="field:'errormsg',width:100,align:'center'">错误原因</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div id="divdgrepiar" style="display:none;">
+                    <table id="dgrepiar" class="easyui-datagrid" style="height: 100%; /*min-height: 400px*/"
+                        data-options="
+                border:0,
+                idField:'id',
+                rownumbers:true,
+                striped:true,
+                singleSelect:true,                
+                checkOnSelect: false,
+                selectOnCheck: false,
+                fitColumns:true,
+                pagination:true">
+                        <thead>
+                            <tr>
+                                <th data-options="field:'servicename',width:100,align:'center'">服务名称</th>
+                                <th data-options="field:'servicetype',width:100,align:'center'">服务类型</th>
+                                <th data-options="field:'organizationname',width:100,align:'center'">组织名称</th>
+                                <th data-options="field:'solution',width:200,align:'center'">错误原因</th>
+                                <th data-options="field:'_operate',width:120,align:'center',formatter:formatOperService">操作</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+</html>
